@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:get_it/get_it.dart';
+import 'package:ray_blog/data/database.dart';
 import 'package:ray_blog/utils/util_file.dart';
 
 const TEMPLATE_SIDE_BAR = '\$SIDE_BAR';
@@ -27,12 +29,18 @@ class Generator {
     print('模板加载完毕');
   }
 
-  generate() {
-    generateIndex();
+  generate() async {
+    await collectArticles();
+    await generateIndex();
+  }
+
+  ///  收集文章信息
+  collectArticles() async {
+    for (final article in GetIt.I.get<Database>().boxArticle.values) {}
   }
 
   /// 生成首页
-  generateIndex() {
+  generateIndex() async {
     String indexWithSidebar =
         templateIndex.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
 

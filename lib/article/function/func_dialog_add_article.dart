@@ -19,6 +19,7 @@ Future<void> addArticle(BuildContext context) async {
 
   Map<String, dynamic> pageInfo =
       await GetIt.I.get<ApiWiki>().getPageInfo(articleTitle);
+  print(pageInfo);
   int pageId = GetIt.I.get<ApiWiki>().getPageIdFromPageInfo(pageInfo);
   print(pageId);
 
