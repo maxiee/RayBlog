@@ -23,4 +23,18 @@ class ApiWiki {
   int getPageIdFromPageInfo(Map<String, dynamic> pageInfo) {
     return pageInfo['pageid'];
   }
+
+  Future<List<Map<String, dynamic>>> getPageRevisions(String title) async {
+    final response = await dio.get(API_HOST, queryParameters: {
+      'action': 'query',
+      'prop': 'revisions',
+      'titles': title,
+      'rvlimit': 500,
+      'format': 'json'
+    });
+    Map<String, dynamic> ret = jsonDecode(response.toString());
+    Map<String, dynamic> pages = ret['query']['pages'] as Map<String, dynamic>;
+    List<dynamic> revisions = pages[pages.keys.first]['revisions'];
+    return revisions.map((e) => e as Map<String, dynamic>).toList();
+  }
 }

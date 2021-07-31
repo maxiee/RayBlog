@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:get_it/get_it.dart';
 import 'package:ray_blog/data/database.dart';
+import 'package:ray_blog/net/api_wiki.dart';
 import 'package:ray_blog/utils/util_file.dart';
 
 const TEMPLATE_SIDE_BAR = '\$SIDE_BAR';
@@ -17,7 +18,9 @@ class Generator {
   late final Directory siteOutputDir;
 
   // query 页面信息缓存
-  Map<int, Map<String, dynamic>> pageInfoMap = Map();
+  Map<String, Map<String, dynamic>> pageInfoMap = {};
+  // revision 缓存
+  Map<String, List<Map<String, dynamic>>> pageRevisionMap = {};
 
   Generator() {
     // 加载站点目录
@@ -40,8 +43,18 @@ class Generator {
   ///  收集文章信息
   collectArticles() async {
     for (final article in GetIt.I.get<Database>().boxArticle.values) {
-      // Map<String, dynamic> pageInfo = GetIt.I.get<ApiWiki>().getPageInfoByTitle(title);
-      // pageInfoMap.putIfAbsent(article.pageId, () => null);
+      print('文章:${article.titleZh}');
+      // 获取文章 PageInfo
+      Map<String, dynamic> pageInfo =
+          await GetIt.I.get<ApiWiki>().getPageInfoByTitle(article.titleZh!);
+
+      pageInfoMap.putIfAbsent(article.titleZh!, () => pageInfo);
+
+      print('获取文章 Revisions');
+      List<Map<String, dynamic>> revisions =
+          await GetIt.I.get<ApiWiki>().getPageRevisions(article.titleZh!);
+      pageRevisionMap.putIfAbsent(article.titleZh!, () => revisions);
+      print(revisions);
     }
   }
 
