@@ -16,7 +16,7 @@ class ArticleAdapter extends TypeAdapter<Article> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Article()..pageId = fields[0] as int?;
+    return Article()..titleZh = fields[0] as String?;
   }
 
   @override
@@ -24,7 +24,7 @@ class ArticleAdapter extends TypeAdapter<Article> {
     writer
       ..writeByte(1)
       ..writeByte(0)
-      ..write(obj.pageId);
+      ..write(obj.titleZh);
   }
 
   @override

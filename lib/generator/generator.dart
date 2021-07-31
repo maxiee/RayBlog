@@ -16,6 +16,9 @@ class Generator {
   late final String templateSidebar; // 侧边栏模板
   late final Directory siteOutputDir;
 
+  // query 页面信息缓存
+  Map<int, Map<String, dynamic>> pageInfoMap = Map();
+
   Generator() {
     // 加载站点目录
     Directory siteDir = FileUtils.raySiteTemplateDir();
@@ -36,7 +39,10 @@ class Generator {
 
   ///  收集文章信息
   collectArticles() async {
-    for (final article in GetIt.I.get<Database>().boxArticle.values) {}
+    for (final article in GetIt.I.get<Database>().boxArticle.values) {
+      // Map<String, dynamic> pageInfo = GetIt.I.get<ApiWiki>().getPageInfoByTitle(title);
+      // pageInfoMap.putIfAbsent(article.pageId, () => null);
+    }
   }
 
   /// 生成首页

@@ -30,7 +30,7 @@ class _PageArticleManagementState extends State<PageArticleManagement> {
       body: ListView(
         children: articles
             .map((e) => ListTile(
-                  title: Text(e.pageId!.toString()),
+                  title: Text(e.titleZh!),
                 ))
             .toList(),
       ),

@@ -8,7 +8,7 @@ class ApiWiki {
   final dio = Dio();
 
   // {pageid: 740, title: BinaryMessenger, pagelanguage: en, pagelanguagehtmlcode: en, touched: 2021-05-08T13:26:13Z, lastrevid: 4007, length: 1523, new: }
-  Future<Map<String, dynamic>> getPageInfo(String title) async {
+  Future<Map<String, dynamic>> getPageInfoByTitle(String title) async {
     final response = await dio.get(API_HOST, queryParameters: {
       'action': 'query',
       'prop': 'info',

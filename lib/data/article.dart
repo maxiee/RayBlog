@@ -6,7 +6,7 @@ part 'article.g.dart';
 @HiveType(typeId: TYPE_ID_ARTICLE)
 class Article {
   @HiveField(0)
-  int? pageId;
+  String? titleZh;
 
   // // 文章中文标题
   // @HiveField(0)
