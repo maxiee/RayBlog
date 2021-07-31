@@ -41,4 +41,10 @@ class FileUtils {
     File full = join(home, 'site');
     return Directory(full.path);
   }
+
+  static Directory raySiteOutputDir() {
+    String home = rayBlogDir().path;
+    File full = join(home, 'site_output');
+    return Directory(full.path);
+  }
 }
