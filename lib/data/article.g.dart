@@ -16,19 +16,15 @@ class ArticleAdapter extends TypeAdapter<Article> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Article()
-      ..titleZh = fields[0] as String?
-      ..titleEn = fields[1] as String?;
+    return Article()..pageId = fields[0] as int?;
   }
 
   @override
   void write(BinaryWriter writer, Article obj) {
     writer
-      ..writeByte(2)
-      ..writeByte(0)
-      ..write(obj.titleZh)
       ..writeByte(1)
-      ..write(obj.titleEn);
+      ..writeByte(0)
+      ..write(obj.pageId);
   }
 
   @override

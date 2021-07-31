@@ -1,6 +1,8 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:ray_blog/data/article.dart';
+import 'package:ray_blog/data/database.dart';
 import 'package:ray_blog/net/api_wiki.dart';
 
 Future<void> addArticle(BuildContext context) async {
@@ -20,8 +22,5 @@ Future<void> addArticle(BuildContext context) async {
   int pageId = GetIt.I.get<ApiWiki>().getPageIdFromPageInfo(pageInfo);
   print(pageId);
 
-  // await GetIt.I
-  //     .get<Database>()
-  //     .boxArticle
-  //     .add(Article()..titleZh = articleTitle);
+  await GetIt.I.get<Database>().boxArticle.add(Article()..pageId = pageId);
 }
