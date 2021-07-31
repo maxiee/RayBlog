@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:ray_blog/data/article.dart';
 import 'package:ray_blog/data/common.dart';
+import 'package:ray_blog/utils/util_file.dart';
 
 class Database {
   late Box<Article> boxArticle;
 
   Database() {
     Future(() async {
-      await Hive.initFlutter('RayBlog');
+      // 初始化配置目录
+      File rayBlogDir = FileUtils.rayBlogDir();
+      File databaseDir = FileUtils.join(rayBlogDir.path, "Database");
 
-      final homePath = await getApplicationDocumentsDirectory();
-      debugPrint("HomePath = $homePath");
+      print('databaseDir = ${databaseDir.path}');
+      FileUtils.createDirIfNotExist(databaseDir);
+
+      Hive.init(databaseDir.path);
 
       Hive.registerAdapter(ArticleAdapter());
       boxArticle = await Hive.openBox(BOX_ARTICLE);
