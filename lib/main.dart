@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ray_blog/article/function/func_dialog_add_article.dart';
 import 'package:ray_blog/data/database.dart';
+import 'package:ray_blog/generator/generator.dart';
 import 'package:ray_blog/page/article/page_article_management.dart';
 
 void main() {
@@ -75,7 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     builder: (context) => const PageArticleManagement())),
                 child: const Text('文章管理')),
             const MaterialButton(onPressed: null, child: Text('感想管理')),
-            const MaterialButton(onPressed: null, child: Text('生成站点')),
+            MaterialButton(
+                onPressed: () => Generator.generator(),
+                child: const Text('生成站点')),
             const MaterialButton(onPressed: null, child: Text('提交站点')),
             const MaterialButton(onPressed: null, child: Text('本地预览')),
             const MaterialButton(onPressed: null, child: Text('设置')),

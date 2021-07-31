@@ -35,4 +35,10 @@ class FileUtils {
     File full = join(home, 'RayBlog');
     return full;
   }
+
+  static Directory raySiteTemplateDir() {
+    String home = rayBlogDir().path;
+    File full = join(home, 'site');
+    return Directory(full.path);
+  }
 }
