@@ -2,10 +2,15 @@ import 'dart:io';
 
 import 'package:get_it/get_it.dart';
 import 'package:ray_blog/data/database.dart';
+import 'package:ray_blog/generator/model/article_revision.dart';
 import 'package:ray_blog/net/api_wiki.dart';
 import 'package:ray_blog/utils/util_file.dart';
 
 const TEMPLATE_SIDE_BAR = '\$SIDE_BAR';
+const TEMPLATE_FEEDS = '\$FEEDS';
+const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
+const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
+const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 
 class Generator {
   static String readFileContent(Directory dir, String fileName) {
@@ -15,12 +20,15 @@ class Generator {
 
   late final String templateIndex; // 首页模板
   late final String templateSidebar; // 侧边栏模板
+  late final String templateFeedItem; // Feed 单元模板
   late final Directory siteOutputDir;
 
   // query 页面信息缓存
   Map<String, Map<String, dynamic>> pageInfoMap = {};
   // revision 缓存
   Map<String, List<Map<String, dynamic>>> pageRevisionMap = {};
+  // 所有文章的修订历史
+  List<ArticleRevision> articlerevisions = [];
 
   Generator() {
     // 加载站点目录
@@ -28,15 +36,17 @@ class Generator {
     siteOutputDir = FileUtils.raySiteOutputDir();
 
     FileUtils.createDirIfNotExist(File(siteOutputDir.path));
-    templateIndex = readFileContent(siteDir, 'index.html');
 
+    templateIndex = readFileContent(siteDir, 'index.html');
     templateSidebar = readFileContent(siteDir, 'sidebar.html');
+    templateFeedItem = readFileContent(siteDir, 'feed_item.html');
 
     print('模板加载完毕');
   }
 
   generate() async {
     await collectArticles();
+    await generateRevisions();
     await generateIndex();
   }
 
@@ -58,10 +68,41 @@ class Generator {
     }
   }
 
+  /// 生成所有文章的 Revisions
+  generateRevisions() async {
+    for (final articleTitle in pageRevisionMap.keys) {
+      // todo 对同一天里对 revision 进行合并
+      for (final revisions in pageRevisionMap[articleTitle]!) {
+        String timestampString = revisions['timestamp'] as String;
+        DateTime dateTime = DateTime.parse(timestampString);
+        String comment = revisions['comment'];
+        if (comment.isNotEmpty) {
+          articlerevisions.add(ArticleRevision(articleTitle, timestampString,
+              dateTime.millisecondsSinceEpoch, comment));
+        }
+      }
+    }
+    articlerevisions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    articlerevisions = articlerevisions.reversed.toList();
+  }
+
   /// 生成首页
   generateIndex() async {
-    String indexWithSidebar =
-        templateIndex.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
+    // 首页 Feed 流生成
+    List<String> feeds = [];
+    for (final revision in articlerevisions) {
+      String feedItem = templateFeedItem;
+      feedItem = feedItem.replaceAll(TEMPLATE_FEED_TITLE, revision.title);
+      feedItem = feedItem.replaceAll(TEMPLATE_FEED_COMMENT, revision.comment);
+      feedItem = feedItem.replaceAll(TEMPLATE_FEED_TIME, revision.timeString);
+      feeds.add(feedItem);
+    }
+
+    String indexWithSidebar = templateIndex;
+    indexWithSidebar =
+        indexWithSidebar.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
+    indexWithSidebar =
+        indexWithSidebar.replaceAll(TEMPLATE_FEEDS, feeds.join('\n'));
 
     File indexOutput = FileUtils.join(siteOutputDir.path, 'index.html');
     indexOutput.writeAsStringSync(indexWithSidebar,

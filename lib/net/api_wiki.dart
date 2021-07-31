@@ -24,6 +24,7 @@ class ApiWiki {
     return pageInfo['pageid'];
   }
 
+  /// [{revid: 4007, parentid: 0, user: Maxiee, timestamp: 2021-05-08T13:21:12Z, comment: Created page with "== Java 接口 == 声明在 engine/shell/platform/android/io/flutter/plugin/common/BinaryMessenger.java。  接口注释：  Facility for communicating with Flutter using asyn..."}]
   Future<List<Map<String, dynamic>>> getPageRevisions(String title) async {
     final response = await dio.get(API_HOST, queryParameters: {
       'action': 'query',
