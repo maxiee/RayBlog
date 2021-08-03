@@ -12,7 +12,7 @@ const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 
-const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/";
+const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/html/";
 
 class Generator {
   static String readFileContent(Directory dir, String fileName) {
@@ -97,6 +97,10 @@ class Generator {
 
   captureWebPages() async {
     Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
+    // 删除当前目录下的所有文件
+    for (final file in rayCaptureDir.listSync()) {
+      file.deleteSync();
+    }
     rayCaptureDir.createSync(recursive: true);
     for (final article in pageInfoMap.keys) {
       await Process.run('single-file', [
