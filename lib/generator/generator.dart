@@ -12,6 +12,8 @@ const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 
+const CAPTURE_HOST = "http://omv.local:9080/index.php/";
+
 class Generator {
   static String readFileContent(Directory dir, String fileName) {
     File file = FileUtils.join(dir.path, fileName);
@@ -45,9 +47,16 @@ class Generator {
   }
 
   generate() async {
+    print('开始生成');
+    print('调用 MediaWiki API 获取文章元信息');
     await collectArticles();
+    print('调用 MediaWiki API 获取文章修订信息');
     await generateRevisions();
+    print('调用 Single 获取文章网页');
+    await captureWebPages();
+    print('生成首页');
     await generateIndex();
+    print('生成完成');
   }
 
   ///  收集文章信息
@@ -84,6 +93,18 @@ class Generator {
     }
     articlerevisions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     articlerevisions = articlerevisions.reversed.toList();
+  }
+
+  captureWebPages() async {
+    Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
+    rayCaptureDir.createSync(recursive: true);
+    for (final article in pageInfoMap.keys) {
+      await Process.run('single-file', [
+        CAPTURE_HOST + article,
+        FileUtils.join(rayCaptureDir.path, article).path + '.html',
+        '--browser-executable-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
+      ]);
+    }
   }
 
   /// 生成首页
