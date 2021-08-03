@@ -12,7 +12,7 @@ const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 
-const CAPTURE_HOST = "http://omv.local:9080/index.php/";
+const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/";
 
 class Generator {
   static String readFileContent(Directory dir, String fileName) {
