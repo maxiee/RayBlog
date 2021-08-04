@@ -27,6 +27,14 @@ class ParserWebPage {
       }
     }
 
+    bool containsMath = false;
+    for (final element in nonEmptySections) {
+      if (element.outerHtml.contains('[math]')) {
+        containsMath = true;
+        break;
+      }
+    }
+
     // 生成新的树
     Element div = Element.tag('div');
     if (style != null) div.append(style);
@@ -38,7 +46,28 @@ class ParserWebPage {
     for (final section in nonEmptySections) {
       div.append(section);
     }
-    print(div.outerHtml);
-    return div.outerHtml;
+
+    if (containsMath) {
+      Element mathJaxInit = Element.tag('script');
+      mathJaxInit.text = '''
+        MathJax = {
+          tex: {
+            inlineMath: [['[math]', '[/math]'], ]
+          }
+        };
+      ''';
+      div.append(mathJaxInit);
+
+      Element mathJaxLink = Element.tag('script');
+      mathJaxLink.attributes.putIfAbsent('src',
+          () => "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js");
+      div.append(mathJaxLink);
+    }
+
+    String output = div.outerHtml;
+    // hacks
+    // 干掉透明度小于 0.5 的节点
+    output = output.replaceAll('opacity:.5', '');
+    return output;
   }
 }
