@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:ray_blog/data/database.dart';
 import 'package:ray_blog/generator/model/article_revision.dart';
 import 'package:ray_blog/net/api_wiki.dart';
+import 'package:ray_blog/parser/html/parse_webpage.dart';
 import 'package:ray_blog/utils/util_file.dart';
 
 const TEMPLATE_SIDE_BAR = '\$SIDE_BAR';
@@ -11,6 +12,7 @@ const TEMPLATE_FEEDS = '\$FEEDS';
 const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
+const TEMPLATE_POST = '\$POST';
 
 const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/html/";
 
@@ -23,6 +25,8 @@ class Generator {
   late final String templateIndex; // 首页模板
   late final String templateSidebar; // 侧边栏模板
   late final String templateFeedItem; // Feed 单元模板
+  late final String templatePost;
+
   late final Directory siteOutputDir;
 
   // query 页面信息缓存
@@ -31,6 +35,8 @@ class Generator {
   Map<String, List<Map<String, dynamic>>> pageRevisionMap = {};
   // 所有文章的修订历史
   List<ArticleRevision> articlerevisions = [];
+  // 所有文章从 MediaWiki 捕获后，经过解析器解析后的缓存
+  Map<String, String> articleContents = {};
 
   Generator() {
     // 加载站点目录
@@ -42,6 +48,7 @@ class Generator {
     templateIndex = readFileContent(siteDir, 'index.html');
     templateSidebar = readFileContent(siteDir, 'sidebar.html');
     templateFeedItem = readFileContent(siteDir, 'feed_item.html');
+    templatePost = readFileContent(siteDir, 'post.html');
 
     print('模板加载完毕');
   }
@@ -50,12 +57,16 @@ class Generator {
     print('开始生成');
     print('调用 MediaWiki API 获取文章元信息');
     await collectArticles();
-    print('调用 MediaWiki API 获取文章修订信息');
-    await generateRevisions();
-    print('调用 Single 获取文章网页');
-    await captureWebPages();
-    print('生成首页');
-    await generateIndex();
+    // print('调用 MediaWiki API 获取文章修订信息');
+    // await generateRevisions();
+    // print('调用 Single 获取文章网页');
+    // await captureWebPages();
+    print('解析网页');
+    await parseWebPages();
+    print('生成文章页');
+    await generateArticlePages();
+    // print('生成首页');
+    // await generateIndex();
     print('生成完成');
   }
 
@@ -108,6 +119,34 @@ class Generator {
         FileUtils.join(rayCaptureDir.path, article).path + '.html',
         '--browser-executable-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
       ]);
+    }
+  }
+
+  /// 解析网页
+  parseWebPages() async {
+    articleContents.clear();
+    for (final article in pageInfoMap.keys) {
+      print(article);
+      Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
+      File articleFile =
+          File(FileUtils.join(rayCaptureDir.path, article).path + '.html');
+      String rawHtml = articleFile.readAsStringSync();
+      articleContents.putIfAbsent(
+          article, () => ParserWebPage.parseWebPage(rawHtml, article));
+      // File testOutput = File(FileUtils.join(rayCaptureDir.path, article).path +
+      //     '-test-output.html');
+      // testOutput.writeAsStringSync(articleContents[article]!, encoding: utf8);
+    }
+  }
+
+  generateArticlePages() async {
+    for (final article in articleContents.keys) {
+      String content = articleContents[article]!;
+      String output =
+          templatePost.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
+      output = output.replaceAll(TEMPLATE_POST, content);
+      File articleFile = FileUtils.join(siteOutputDir.path, '$article.html');
+      articleFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
     }
   }
 
