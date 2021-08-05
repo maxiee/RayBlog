@@ -39,6 +39,8 @@ class Generator {
   Map<String, String> articleContents = {};
   // 文章分类信息缓存
   Map<String, List<String>> articleCategoriesMap = {};
+  // 以分类维度梳理文章
+  Map<String, List<String>> categoriesMap = {};
 
   Generator() {
     // 加载站点目录
@@ -100,6 +102,18 @@ class Generator {
       // print(categories.toString());
       articleCategoriesMap.putIfAbsent(article, () => categories);
     }
+    for (final article in articleCategoriesMap.keys) {
+      List<String> categories = articleCategoriesMap[article] ?? [];
+      for (final cat in categories) {
+        if (!categoriesMap.containsKey(cat)) {
+          categoriesMap.putIfAbsent(cat, () => []);
+        }
+        categoriesMap[cat]!.add(article);
+      }
+    }
+    categoriesMap = Map.fromEntries(categoriesMap.entries.toList()
+      ..sort((e1, e2) => e1.value.length.compareTo(e2.value.length)));
+    print(categoriesMap);
   }
 
   /// 生成所有文章的 Revisions
