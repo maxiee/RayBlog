@@ -37,6 +37,8 @@ class Generator {
   List<ArticleRevision> articlerevisions = [];
   // 所有文章从 MediaWiki 捕获后，经过解析器解析后的缓存
   Map<String, String> articleContents = {};
+  // 文章分类信息缓存
+  Map<String, List<String>> articleCategoriesMap = {};
 
   Generator() {
     // 加载站点目录
@@ -57,6 +59,8 @@ class Generator {
     print('开始生成');
     print('调用 MediaWiki API 获取文章元信息');
     await collectArticles();
+    print('收集文章分类信息');
+    await collectArticleCategories();
     // print('调用 MediaWiki API 获取文章修订信息');
     // await generateRevisions();
     // print('调用 Single 获取文章网页');
@@ -84,7 +88,17 @@ class Generator {
       List<Map<String, dynamic>> revisions =
           await GetIt.I.get<ApiWiki>().getPageRevisions(article.titleZh!);
       pageRevisionMap.putIfAbsent(article.titleZh!, () => revisions);
-      print(revisions);
+      // print(revisions);
+    }
+  }
+
+  /// 收集文章分类信息
+  collectArticleCategories() async {
+    for (final article in pageInfoMap.keys) {
+      List<String> categories =
+          await GetIt.I.get<ApiWiki>().getPageCategories(article);
+      // print(categories.toString());
+      articleCategoriesMap.putIfAbsent(article, () => categories);
     }
   }
 

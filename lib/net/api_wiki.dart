@@ -38,4 +38,21 @@ class ApiWiki {
     List<dynamic> revisions = pages[pages.keys.first]['revisions'];
     return revisions.map((e) => e as Map<String, dynamic>).toList();
   }
+
+  /// https://www.mediawiki.org/wiki/API:Categories
+  Future<List<String>> getPageCategories(String title) async {
+    final response = await dio.get(API_HOST, queryParameters: {
+      'action': 'query',
+      'prop': 'categories',
+      'titles': title,
+      'format': 'json'
+    });
+    Map<String, dynamic> ret = jsonDecode(response.toString());
+    Map<String, dynamic> pages = ret['query']['pages'] as Map<String, dynamic>;
+    Map<String, dynamic> page = pages[pages.keys.first] as Map<String, dynamic>;
+    List<dynamic> categories = page['categories'] as List<dynamic>;
+    return categories
+        .map((e) => (e as Map<String, dynamic>)['title'] as String)
+        .toList();
+  }
 }
