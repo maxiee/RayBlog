@@ -68,6 +68,7 @@ class ParserWebPage {
     // hacks
     // 干掉透明度小于 0.5 的节点
     output = output.replaceAll('opacity:.5', '');
+    output = output.replaceAll('http://omv.local:9080/index.php', '');
     return output;
   }
 }
