@@ -70,11 +70,13 @@ class Generator {
     print('调用 MediaWiki API 获取文章修订信息');
     await generateRevisions();
     print('调用 Single 获取文章网页');
-    // await captureWebPages();
+    await captureWebPages();
     print('解析网页');
     await parseWebPages();
     print('生成文章页');
     await generateArticlePages();
+    print('生成分类页');
+    await generateCategoriesPage();
     // print('生成首页');
     await generateIndex();
     print('生成完成');
@@ -223,6 +225,21 @@ class Generator {
     }
   }
 
+  generateCategoriesPage() async {
+    for (final cat in categoriesMap.keys) {
+      List<String> articles = categoriesMap[cat]!;
+      String categoryOutput =
+          articles.map((e) => '<p></p><a href="/$e">$e</a></p>').join('<br/>');
+      categoryOutput = '<h1>$cat</h1>' + categoryOutput;
+
+      String output = generateSideBar(templatePost);
+      output = output.replaceAll(TEMPLATE_POST, categoryOutput);
+      output = output.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
+      File categoryFile = FileUtils.join(siteOutputDir.path, '$cat.html');
+      categoryFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
+    }
+  }
+
   /// 生成侧边栏
   String generateSideBar(String html) {
     return html.replaceAll(
@@ -231,7 +248,7 @@ class Generator {
             TEMPLATE_SIDE_BAR_CATEGORIES,
             categoriesMap.entries
                 .map((e) =>
-                    '<li><a href="/${e.key}">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
+                    '<li><a href="/${e.key}.html">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
                 .toList()
                 .join('\n')));
   }
