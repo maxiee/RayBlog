@@ -228,8 +228,9 @@ class Generator {
   generateCategoriesPage() async {
     for (final cat in categoriesMap.keys) {
       List<String> articles = categoriesMap[cat]!;
-      String categoryOutput =
-          articles.map((e) => '<p></p><a href="/$e">$e</a></p>').join('<br/>');
+      String categoryOutput = articles
+          .map((e) => '<p></p><a href="/$e.html">$e</a></p>')
+          .join('<br/>');
       categoryOutput = '<h1>$cat</h1>' + categoryOutput;
 
       String output = generateSideBar(templatePost);
