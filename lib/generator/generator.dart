@@ -14,6 +14,7 @@ const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 const TEMPLATE_POST = '\$POST';
+const TEMPLATE_NAV_BAR = '\$NAV_BAR';
 
 const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/html/";
 
@@ -26,6 +27,7 @@ class Generator {
   late final String templateIndex; // 首页模板
   late final String templateSidebar; // 侧边栏模板
   late final String templateFeedItem; // Feed 单元模板
+  late final String templateNavBar; // 导航栏模板
   late final String templatePost;
 
   late final Directory siteOutputDir;
@@ -54,6 +56,7 @@ class Generator {
     templateSidebar = readFileContent(siteDir, 'sidebar.html');
     templateFeedItem = readFileContent(siteDir, 'feed_item.html');
     templatePost = readFileContent(siteDir, 'post.html');
+    templateNavBar = readFileContent(siteDir, 'navbar.html');
 
     print('模板加载完毕');
   }
@@ -214,6 +217,7 @@ class Generator {
       String content = articleContents[article]!;
       String output = generateSideBar(templatePost);
       output = output.replaceAll(TEMPLATE_POST, content);
+      output = output.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
       File articleFile = FileUtils.join(siteOutputDir.path, '$article.html');
       articleFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
     }
@@ -248,6 +252,8 @@ class Generator {
     indexWithSidebar = generateSideBar(indexWithSidebar);
     indexWithSidebar =
         indexWithSidebar.replaceAll(TEMPLATE_FEEDS, feeds.join('\n'));
+    indexWithSidebar =
+        indexWithSidebar.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
 
     File indexOutput = FileUtils.join(siteOutputDir.path, 'index.html');
     indexOutput.writeAsStringSync(indexWithSidebar,
