@@ -171,8 +171,7 @@ class Generator {
   generateArticlePages() async {
     for (final article in articleContents.keys) {
       String content = articleContents[article]!;
-      String output =
-          templatePost.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
+      String output = generateSideBar(templatePost);
       output = output.replaceAll(TEMPLATE_POST, content);
       File articleFile = FileUtils.join(siteOutputDir.path, '$article.html');
       articleFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
