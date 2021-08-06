@@ -121,15 +121,56 @@ class Generator {
   generateRevisions() async {
     for (final articleTitle in pageRevisionMap.keys) {
       // todo 对同一天里对 revision 进行合并
+      List<ArticleRevision> tempReivisions = [];
+
+      DateTime? revisionDatetime;
+      List<String> revisionMerged = [];
       for (final revisions in pageRevisionMap[articleTitle]!) {
         String timestampString = revisions['timestamp'] as String;
         DateTime dateTime = DateTime.parse(timestampString);
         String comment = revisions['comment'];
-        if (comment.isNotEmpty) {
-          articlerevisions.add(ArticleRevision(articleTitle, timestampString,
-              dateTime.millisecondsSinceEpoch, comment));
+
+        if (comment.isEmpty) continue;
+
+        // 如果合并缓存为空，则初始化并开始下一次遍历
+        if (revisionDatetime == null) {
+          revisionDatetime = dateTime;
+          revisionMerged.add(comment);
+          continue;
         }
+
+        // 如果缓存不为空，当前修订与缓存同一天，那么添加修订缓存
+        if (revisionDatetime.year == dateTime.year &&
+            revisionDatetime.month == dateTime.month &&
+            revisionDatetime.day == dateTime.day) {
+          if (!revisionMerged.contains(comment)) revisionMerged.add(comment);
+          continue;
+        }
+
+        // 如果当前修订是新的一天了，先清已有缓存，再把自己加进去
+        if (revisionMerged.isNotEmpty) {
+          tempReivisions.add(ArticleRevision(
+              articleTitle,
+              revisionDatetime.toString(),
+              revisionDatetime.millisecondsSinceEpoch,
+              revisionMerged.join('<br/>')));
+          revisionMerged.clear();
+        }
+        revisionDatetime = dateTime;
+        if (!revisionMerged.contains(comment)) revisionMerged.add(comment);
       }
+
+      // 遍历完再把缓存里残存的提交上去
+      if (revisionMerged.isNotEmpty) {
+        tempReivisions.add(ArticleRevision(
+            articleTitle,
+            revisionDatetime.toString(),
+            revisionDatetime!.millisecondsSinceEpoch,
+            revisionMerged.join('<br/>')));
+        revisionMerged.clear();
+        revisionDatetime = null;
+      }
+      articlerevisions.addAll(tempReivisions);
     }
     articlerevisions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     articlerevisions = articlerevisions.reversed.toList();
