@@ -14,6 +14,7 @@ const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
 const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 const TEMPLATE_POST = '\$POST';
+const TEMPLATE_POST_TITLE = '\$TITLE';
 const TEMPLATE_NAV_BAR = '\$NAV_BAR';
 
 const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/html/";
@@ -220,6 +221,7 @@ class Generator {
       String output = generateSideBar(templatePost);
       output = output.replaceAll(TEMPLATE_POST, content);
       output = output.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
+      output = output.replaceAll(TEMPLATE_POST_TITLE, article);
       File articleFile = FileUtils.join(siteOutputDir.path, '$article.html');
       articleFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
     }
@@ -234,6 +236,7 @@ class Generator {
       categoryOutput = '<h1>$cat</h1>' + categoryOutput;
 
       String output = generateSideBar(templatePost);
+      output = output.replaceAll(TEMPLATE_POST_TITLE, cat);
       output = output.replaceAll(TEMPLATE_POST, categoryOutput);
       output = output.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
       File categoryFile = FileUtils.join(siteOutputDir.path, '$cat.html');
