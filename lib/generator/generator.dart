@@ -8,6 +8,7 @@ import 'package:ray_blog/parser/html/parse_webpage.dart';
 import 'package:ray_blog/utils/util_file.dart';
 
 const TEMPLATE_SIDE_BAR = '\$SIDE_BAR';
+const TEMPLATE_SIDE_BAR_CATEGORIES = '\$SIDEBAR_CATEGORIES';
 const TEMPLATE_FEEDS = '\$FEEDS';
 const TEMPLATE_FEED_TITLE = '\$FEED_TITLE';
 const TEMPLATE_FEED_COMMENT = '\$FEED_COMMENT';
@@ -63,16 +64,16 @@ class Generator {
     await collectArticles();
     print('收集文章分类信息');
     await collectArticleCategories();
-    // print('调用 MediaWiki API 获取文章修订信息');
-    // await generateRevisions();
-    // print('调用 Single 获取文章网页');
+    print('调用 MediaWiki API 获取文章修订信息');
+    await generateRevisions();
+    print('调用 Single 获取文章网页');
     // await captureWebPages();
     print('解析网页');
     await parseWebPages();
     print('生成文章页');
     await generateArticlePages();
     // print('生成首页');
-    // await generateIndex();
+    await generateIndex();
     print('生成完成');
   }
 
@@ -178,6 +179,19 @@ class Generator {
     }
   }
 
+  /// 生成侧边栏
+  String generateSideBar(String html) {
+    return html.replaceAll(
+        TEMPLATE_SIDE_BAR,
+        templateSidebar.replaceAll(
+            TEMPLATE_SIDE_BAR_CATEGORIES,
+            categoriesMap.entries
+                .map((e) =>
+                    '<li><a href="/${e.key}">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
+                .toList()
+                .join('\n')));
+  }
+
   /// 生成首页
   generateIndex() async {
     // 首页 Feed 流生成
@@ -191,8 +205,7 @@ class Generator {
     }
 
     String indexWithSidebar = templateIndex;
-    indexWithSidebar =
-        indexWithSidebar.replaceAll(TEMPLATE_SIDE_BAR, templateSidebar);
+    indexWithSidebar = generateSideBar(indexWithSidebar);
     indexWithSidebar =
         indexWithSidebar.replaceAll(TEMPLATE_FEEDS, feeds.join('\n'));
 
