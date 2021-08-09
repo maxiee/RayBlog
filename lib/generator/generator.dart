@@ -136,7 +136,11 @@ class Generator {
         DateTime dateTime = DateTime.parse(timestampString);
         String comment = revisions['comment'];
 
+        // filter revisions
         if (comment.isEmpty) continue;
+        if (comment.startsWith('/*')) continue;
+        if (comment.startsWith('Created page with')) continue;
+        if (comment.contains('moved page')) continue;
 
         // 如果合并缓存为空，则初始化并开始下一次遍历
         if (revisionDatetime == null) {
