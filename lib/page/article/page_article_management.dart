@@ -31,6 +31,13 @@ class _PageArticleManagementState extends State<PageArticleManagement> {
         children: articles
             .map((e) => ListTile(
                   title: Text(e.titleZh!),
+                  onLongPress: () {
+                    GetIt.I
+                        .get<Database>()
+                        .boxArticle
+                        .delete(e.key)
+                        .then((value) => Navigator.of(context).pop());
+                  },
                 ))
             .toList(),
       ),

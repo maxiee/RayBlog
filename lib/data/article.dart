@@ -4,7 +4,7 @@ import 'package:ray_blog/data/common.dart';
 part 'article.g.dart';
 
 @HiveType(typeId: TYPE_ID_ARTICLE)
-class Article {
+class Article extends HiveObject {
   @HiveField(0)
   String? titleZh;
 
