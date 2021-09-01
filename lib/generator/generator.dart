@@ -193,6 +193,9 @@ class Generator {
       file.deleteSync();
     }
     rayCaptureDir.createSync(recursive: true);
+
+    List<Future> futures = [];
+
     for (final article in pageInfoMap.keys) {
 //      await Process.run('single-file', [
 //        CAPTURE_HOST + article,
@@ -200,12 +203,14 @@ class Generator {
 //        '--browser-executable-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 //      ]);
       // on Windows
-      await Process.run('D:\\Code\\SingleFile\\cli\\single-file.bat', [
+      futures.add(Process.run('D:\\Code\\SingleFile\\cli\\single-file.bat', [
         CAPTURE_HOST + article,
         FileUtils.join(rayCaptureDir.path, article).path + '.html',
         '--browser-executable-path="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"'
-      ]);
+      ]));
     }
+
+    await Future.wait(futures);
   }
 
   /// 解析网页
