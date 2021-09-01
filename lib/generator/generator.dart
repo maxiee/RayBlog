@@ -255,6 +255,8 @@ class Generator {
         templateSidebar.replaceAll(
             TEMPLATE_SIDE_BAR_CATEGORIES,
             categoriesMap.entries
+                .toList()
+                .reversed
                 .map((e) =>
                     '<li><a href="/${e.key}.html">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
                 .toList()
