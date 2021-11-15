@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ray_blog/article/function/func_dialog_add_article.dart';
+import 'package:ray_blog/config/environment_variables.dart';
 import 'package:ray_blog/data/database.dart';
 import 'package:ray_blog/page/article/page_article_management.dart';
 
@@ -42,6 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     GetIt.I.registerSingleton(Database());
     GetIt.I.registerSingleton(ApiWiki());
+    GetIt.I.registerSingleton(EnvironmentVariableStore());
+
+    GetIt.I.get<EnvironmentVariableStore>().printEnvironmentVariables();
   }
 
   @override
@@ -80,9 +86,40 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('文章管理')),
             const MaterialButton(onPressed: null, child: Text('感想管理')),
             MaterialButton(
-                onPressed: () => Generator().generate(),
+                onPressed: () => Generator().generate(context),
                 child: const Text('生成站点')),
-            const MaterialButton(onPressed: null, child: Text('提交站点')),
+            MaterialButton(
+                onPressed: () async {
+                  print('提交开始');
+                  ProcessResult result = await Process.run("aws", [
+                    's3',
+                    'sync',
+                    'C:\\Users\\maxiee\\RayBlog\\site_output\\',
+                    GetIt.I.get<EnvironmentVariableStore>().rayBlogS3Bucket!,
+                    '--delete'
+                  ]);
+                  print(result.stdout);
+                  result = await Process.run('aws', [
+                    'cloudfront',
+                    'create-invalidation',
+                    '--distribution-id',
+                    GetIt.I
+                        .get<EnvironmentVariableStore>()
+                        .rayBlogCloudFrontDistributionID!,
+                    '--paths',
+                    '/*'
+                  ]);
+                  print(result.stdout);
+                  print('提交结束');
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return const AlertDialog(
+                          title: Text('站点提交完成'),
+                        );
+                      });
+                },
+                child: Text('提交站点')),
             const MaterialButton(onPressed: null, child: Text('本地预览')),
             const MaterialButton(onPressed: null, child: Text('设置')),
           ])

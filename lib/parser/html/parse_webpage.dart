@@ -1,5 +1,7 @@
+import 'package:get_it/get_it.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
+import 'package:ray_blog/config/environment_variables.dart';
 
 class ParserWebPage {
   static String parseWebPage(String rawHtml, String titleString) {
@@ -68,7 +70,8 @@ class ParserWebPage {
     // hacks
     // 干掉透明度小于 0.5 的节点
     output = output.replaceAll('opacity:.5', '');
-    output = output.replaceAll('http://omv.local:9080/index.php', '');
+    output = output.replaceAll(
+        GetIt.I.get<EnvironmentVariableStore>().rayBlogReplaceHost!, '');
     return output;
   }
 }

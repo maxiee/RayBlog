@@ -1,6 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:html/parser.dart';
+import 'package:ray_blog/config/environment_variables.dart';
 import 'package:ray_blog/data/database.dart';
 import 'package:ray_blog/generator/model/article_revision.dart';
 import 'package:ray_blog/net/api_wiki.dart';
@@ -16,8 +19,6 @@ const TEMPLATE_FEED_TIME = '\$FEED_TIME';
 const TEMPLATE_POST = '\$POST';
 const TEMPLATE_POST_TITLE = '\$TITLE';
 const TEMPLATE_NAV_BAR = '\$NAV_BAR';
-
-const CAPTURE_HOST = "http://omv.local:8035/localhost/v3/page/html/";
 
 class Generator {
   static String readFileContent(Directory dir, String fileName) {
@@ -62,7 +63,7 @@ class Generator {
     print('模板加载完毕');
   }
 
-  generate() async {
+  generate(BuildContext context) async {
     print('开始生成');
     print('调用 MediaWiki API 获取文章元信息');
     await collectArticles();
@@ -81,6 +82,13 @@ class Generator {
     // print('生成首页');
     await generateIndex();
     print('生成完成');
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const AlertDialog(
+            title: Text('站点生成完成'),
+          );
+        });
   }
 
   ///  收集文章信息
@@ -203,10 +211,23 @@ class Generator {
 //        '--browser-executable-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
 //      ]);
       // on Windows
-      futures.add(Process.run('D:\\Code\\SingleFile\\cli\\single-file.bat', [
-        CAPTURE_HOST + article,
+      futures.add(Process.run(
+          GetIt.I.get<EnvironmentVariableStore>().rayBlogSingleFilePath!, [
+        GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + article,
         FileUtils.join(rayCaptureDir.path, article).path + '.html',
-        '--browser-executable-path="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"'
+        '--browser-executable-path="${GetIt.I.get<EnvironmentVariableStore>().rayBlogChromePath!}"'
+      ]));
+    }
+
+    for (final cat in categoriesMap.keys) {
+      print(
+          '输出分类 ${GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat}');
+      futures.add(Process.run(
+          GetIt.I.get<EnvironmentVariableStore>().rayBlogSingleFilePath!, [
+        GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat,
+        FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path +
+            '.html',
+        '--browser-executable-path="${GetIt.I.get<EnvironmentVariableStore>().rayBlogChromePath!}"'
       ]));
     }
 
@@ -244,17 +265,24 @@ class Generator {
 
   generateCategoriesPage() async {
     for (final cat in categoriesMap.keys) {
+      // 生成文章列表
       List<String> articles = categoriesMap[cat]!;
-      String categoryOutput = articles
-          .map((e) => '<p></p><a href="/$e.html">$e</a></p>')
-          .join('<br/>');
-      categoryOutput = '<h1>$cat</h1>' + categoryOutput;
+      String categoryOutput =
+          articles.map((e) => '<li><a href="/$e.html">$e</a></li>').join('');
+
+      categoryOutput = '<h1>$cat</h1>' +
+          loadAndParseCategoryContent(cat) +
+          '<h2>文章列表</h2>' +
+          '<ol>$categoryOutput</ol>';
 
       String output = generateSideBar(templatePost);
+
       output = output.replaceAll(TEMPLATE_POST_TITLE, cat);
       output = output.replaceAll(TEMPLATE_POST, categoryOutput);
       output = output.replaceAll(TEMPLATE_NAV_BAR, templateNavBar);
-      File categoryFile = FileUtils.join(siteOutputDir.path, '$cat.html');
+
+      File categoryFile = FileUtils.join(
+          siteOutputDir.path, '$cat.html'.replaceFirst(':', '-'));
       categoryFile.writeAsStringSync(output, mode: FileMode.write, flush: true);
     }
   }
@@ -269,7 +297,7 @@ class Generator {
                 .toList()
                 .reversed
                 .map((e) =>
-                    '<li><a href="/${e.key}.html">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
+                    '<li><a href="/${e.key.replaceFirst(':', '-')}.html">${e.key.replaceAll('Category:', '')}(${e.value.length})</a></li>')
                 .toList()
                 .join('\n')));
   }
@@ -296,5 +324,21 @@ class Generator {
     File indexOutput = FileUtils.join(siteOutputDir.path, 'index.html');
     indexOutput.writeAsStringSync(indexWithSidebar,
         mode: FileMode.write, flush: true);
+  }
+
+  String loadAndParseCategoryContent(String cat) {
+    Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
+    String catFilePath =
+        FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path +
+            '.html';
+    String content = File(catFilePath).readAsStringSync();
+    if (content.contains("Did not find page revisions for")) return "";
+    var document = parse(content, encoding: 'utf-8');
+    String bodyText = document.body?.text ?? "";
+    print('bodyText = $bodyText');
+    if (bodyText.isEmpty) return "";
+    return document.body?.innerHtml.replaceAll(
+            GetIt.I.get<EnvironmentVariableStore>().rayBlogReplaceHost!, '') ??
+        "";
   }
 }
