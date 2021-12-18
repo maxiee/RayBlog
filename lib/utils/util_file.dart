@@ -8,11 +8,11 @@ class FileUtils {
     String? home = "";
     Map<String, String> envVars = Platform.environment;
     if (Platform.isMacOS) {
-      home = envVars['HOME'];
+      home = envVars['RAYBLOG_HOME'];
     } else if (Platform.isLinux) {
-      home = envVars['HOME'];
+      home = envVars['RAYBLOG_HOME'];
     } else if (Platform.isWindows) {
-      home = envVars['UserProfile'];
+      home = envVars['RAYBLOG_HOME'];
     }
     print('home = $home');
     return home!;

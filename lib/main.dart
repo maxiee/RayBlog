@@ -70,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
               const Text('同时更新站点'),
               const SizedBox(width: 20),
               const Text('发布平台'),
-              DropdownButton(items: []),
               const SizedBox(width: 20),
               const OutlinedButton(onPressed: null, child: Text('发送'))
             ],
