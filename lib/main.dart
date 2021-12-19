@@ -93,11 +93,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   ProcessResult result = await Process.run("aws", [
                     's3',
                     'sync',
-                    'C:\\Users\\maxiee\\RayBlog\\site_output\\',
+                    GetIt.I.get<EnvironmentVariableStore>().rayBlogSiteOutput!,
                     GetIt.I.get<EnvironmentVariableStore>().rayBlogS3Bucket!,
                     '--delete'
                   ]);
                   print(result.stdout);
+                  print(result.stderr);
                   result = await Process.run('aws', [
                     'cloudfront',
                     'create-invalidation',
@@ -109,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     '/*'
                   ]);
                   print(result.stdout);
+                  print(result.stderr);
                   print('提交结束');
                   showDialog(
                       context: context,
