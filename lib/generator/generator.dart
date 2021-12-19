@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:html/parser.dart';
 import 'package:ray_blog/config/environment_variables.dart';
 import 'package:ray_blog/data/database.dart';
+import 'package:ray_blog/generator/capture/capture_dio.dart';
 import 'package:ray_blog/generator/model/article_revision.dart';
 import 'package:ray_blog/net/api_wiki.dart';
 import 'package:ray_blog/parser/html/parse_webpage.dart';
@@ -72,7 +73,8 @@ class Generator {
     print('调用 MediaWiki API 获取文章修订信息');
     await generateRevisions();
     print('调用 Single 获取文章网页');
-    await captureWebPages();
+    // await captureWebPages();
+    await captureWebPagesLight();
     print('解析网页');
     await parseWebPages();
     print('生成文章页');
@@ -192,6 +194,33 @@ class Generator {
     }
     articlerevisions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     articlerevisions = articlerevisions.reversed.toList();
+  }
+
+  /// 擺脫 SigleFile，更加輕量級的網頁獲取方式
+  captureWebPagesLight() async {
+    Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
+    // 刪除當前目錄下所有文件
+    for (final file in rayCaptureDir.listSync()) {
+      file.deleteSync();
+    }
+    rayCaptureDir.createSync(recursive: true);
+
+    List<Future> futures = [];
+
+    for (final article in pageInfoMap.keys) {
+      futures.add(CaptureDio.capturePage(
+          GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! +
+          article, FileUtils.join(rayCaptureDir.path, article).path + '.html'));
+    }
+
+    for (final cat in categoriesMap.keys) {
+      futures.add(CaptureDio.capturePage(
+          GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat,
+          FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path + '.html'
+      ));
+    }
+
+    await Future.wait(futures);
   }
 
   captureWebPages() async {
