@@ -208,15 +208,15 @@ class Generator {
 
     for (final article in pageInfoMap.keys) {
       futures.add(CaptureDio.capturePage(
-          GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! +
-          article, FileUtils.join(rayCaptureDir.path, article).path + '.html'));
+          GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + article,
+          FileUtils.join(rayCaptureDir.path, article).path + '.html'));
     }
 
     for (final cat in categoriesMap.keys) {
       futures.add(CaptureDio.capturePage(
           GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat,
-          FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path + '.html'
-      ));
+          FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path +
+              '.html'));
     }
 
     await Future.wait(futures);
@@ -319,6 +319,11 @@ class Generator {
     String catFilePath =
         FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path +
             '.html';
+    if (!File(catFilePath).existsSync()) {
+      // ignore: avoid_print
+      print('$cat 尚未創建');
+      return "";
+    }
     String content = File(catFilePath).readAsStringSync();
     if (content.contains("Did not find page revisions for")) return "";
     var document = parse(content, encoding: 'utf-8');
