@@ -73,7 +73,6 @@ class Generator {
     print('调用 MediaWiki API 获取文章修订信息');
     await generateRevisions();
     print('调用 Single 获取文章网页');
-    // await captureWebPages();
     await captureWebPagesLight();
     print('解析网页');
     await parseWebPages();
@@ -218,46 +217,6 @@ class Generator {
           GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat,
           FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path + '.html'
       ));
-    }
-
-    await Future.wait(futures);
-  }
-
-  captureWebPages() async {
-    Directory rayCaptureDir = FileUtils.raySiteCaptureDir();
-    // 删除当前目录下的所有文件
-    for (final file in rayCaptureDir.listSync()) {
-      file.deleteSync();
-    }
-    rayCaptureDir.createSync(recursive: true);
-
-    List<Future> futures = [];
-
-    for (final article in pageInfoMap.keys) {
-//      await Process.run('single-file', [
-//        CAPTURE_HOST + article,
-//        FileUtils.join(rayCaptureDir.path, article).path + '.html',
-//        '--browser-executable-path="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'
-//      ]);
-      // on Windows
-      futures.add(Process.run(
-          GetIt.I.get<EnvironmentVariableStore>().rayBlogSingleFilePath!, [
-        GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + article,
-        FileUtils.join(rayCaptureDir.path, article).path + '.html',
-        '--browser-executable-path="${GetIt.I.get<EnvironmentVariableStore>().rayBlogChromePath!}"'
-      ]));
-    }
-
-    for (final cat in categoriesMap.keys) {
-      print(
-          '输出分类 ${GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat}');
-      futures.add(Process.run(
-          GetIt.I.get<EnvironmentVariableStore>().rayBlogSingleFilePath!, [
-        GetIt.I.get<EnvironmentVariableStore>().rayBlogParsoidHost! + cat,
-        FileUtils.join(rayCaptureDir.path, cat.replaceFirst(':', '-')).path +
-            '.html',
-        '--browser-executable-path="${GetIt.I.get<EnvironmentVariableStore>().rayBlogChromePath!}"'
-      ]));
     }
 
     await Future.wait(futures);
